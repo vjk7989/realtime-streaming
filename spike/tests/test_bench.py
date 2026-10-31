@@ -264,6 +264,22 @@ def test_happy_path_metrics(env):
     assert_stopped(env.proc)
 
 
+def test_reasoning_only_stream_still_measured(env):
+    # Reasoning-on models may spend all max_tokens in reasoning_content (seen in CI run 41235922728).
+    chunks = [
+        'data: {"choices":[{"delta":{"reasoning_content":"Let me think"}}]}',
+        'data: {"choices":[{"delta":{"reasoning_content":" about rainbows"}}],"timings":{"predicted_per_second":20.0}}',
+        "data: [DONE]",
+    ]
+    env.post_routes["/v1/chat/completions"] = resp(200, lines=chunks)
+    env.post_routes["/tts"] = resp(200, content=b"RIFF" + b"\0" * 2000)
+    env.post_routes["/v1/systemone"] = resp(200, body={"answers": {}})
+    assert env.run() == 0
+    t = env.by_mode()["text"]
+    assert t["status"] == "ok" and t["ttft_ms"] is not None
+    assert t["detail"].startswith("[reasoning] Let me think")
+
+
 def test_tts_without_audio_is_error(env):
     env.post_routes["/tts"] = resp(200, content=b"<html>oops</html>")
     assert env.run() == 0

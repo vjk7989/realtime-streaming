@@ -67,10 +67,14 @@ def _check(resp):
 
 
 def _stream_chat(base_url, messages, timeout, max_tokens=128):
-    """Streamed chat completion. Returns (text, ttft_ms, tok_s)."""
+    """Streamed chat completion. Returns (text, ttft_ms, tok_s).
+
+    TTFT counts reasoning tokens too: models with reasoning on stream
+    `reasoning_content` first and may never reach `content` within max_tokens.
+    """
     body = {"messages": messages, "stream": True, "max_tokens": max_tokens, "temperature": 0}
     t0 = time.perf_counter()
-    ttft, parts, timings = None, [], {}
+    ttft, parts, thinking, timings = None, [], [], {}
     with requests.post(f"{base_url}/v1/chat/completions", json=body, stream=True,
                        timeout=timeout) as r:
         _check(r)
@@ -83,12 +87,14 @@ def _stream_chat(base_url, messages, timeout, max_tokens=128):
             chunk = json.loads(data)
             timings = chunk.get("timings") or timings
             for ch in chunk.get("choices") or []:
-                delta = (ch.get("delta") or {}).get("content")
-                if delta:
-                    if ttft is None:
-                        ttft = (time.perf_counter() - t0) * 1000
-                    parts.append(delta)
-    return "".join(parts), ttft, timings.get("predicted_per_second")
+                d = ch.get("delta") or {}
+                for key, sink in (("reasoning_content", thinking), ("content", parts)):
+                    if d.get(key):
+                        if ttft is None:
+                            ttft = (time.perf_counter() - t0) * 1000
+                        sink.append(d[key])
+    text = "".join(parts) or ("[reasoning] " + "".join(thinking) if thinking else "")
+    return text, ttft, timings.get("predicted_per_second")
 
 
 def run_text(base_url, timeout, **_):
