@@ -1,0 +1,8 @@
+# Local-only: caches, tools, models, build output (all kept on G:, never committed)
+.cache/
+.tools/
+models/
+out/
+graphify-out/
+*.gguf
+__pycache__/
