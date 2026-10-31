@@ -1,0 +1,34 @@
+llama_tag: b11960
+models:
+  - id: omni-2b
+    repo: LiquidAI/LFM3-Omni-2B-GGUF
+    file: LFM3-Omni-2B-Q4_K_M.gguf
+    mmproj: mmproj-LFM3-Omni-2B-Q8_0.gguf
+    modes: [text, vision, asr, tts]
+    server_args: ["--reasoning", "off"]
+  - id: audio-2b
+    repo: LiquidAI/LFM3-Audio-2B-GGUF
+    file: LFM3-Audio-2B-Q4_K_M.gguf
+    mmproj: mmproj-LFM3-Audio-2B-Q8_0.gguf
+    modes: [text, asr, tts]
+  - id: vl-2b
+    repo: LiquidAI/LFM3-VL-2B-GGUF
+    file: LFM3-VL-2B-Q4_K_M.gguf
+    mmproj: mmproj-LFM3-VL-2B-Q8_0.gguf
+    modes: [text, vision]
+  - id: text-1-7b
+    repo: LiquidAI/LFM3-1.7B-GGUF
+    file: LFM3-1.7B-Q4_K_M.gguf
+    modes: [text]
+  - id: d1-omni-600m
+    repo: LiquidAI/d1-omni-600M-GGUF
+    file: d1-omni-600M-Q8_0.gguf
+    mmproj: mmproj-d1-omni-600M-Q8_0.gguf
+    modes: [d1]
+    server_args: ["-b", "4096", "-ub", "4096", "--cache-ram", "0"]
+  - id: d1-2b
+    repo: LiquidAI/d1-2B-GGUF
+    file: d1-2B-Q4_K_M.gguf
+    mmproj: mmproj-d1-2B-Q8_0.gguf
+    modes: [d1]
+    server_args: ["-b", "8192", "-ub", "8192", "--cache-ram", "0"]
